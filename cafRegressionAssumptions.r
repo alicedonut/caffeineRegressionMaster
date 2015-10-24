@@ -14,6 +14,8 @@ caffRegMeans <- colMeans(data.frame(caffReg$totCaffeine, caffReg$numQuitAttempts
 
 # this is for the sd of the columns. The '2' tells the apply function to calculate column means. 1 would tell it to do rows. c(1,2) does both. You could apply any function to the FUN argument btw, including mean, which means you could calculate means with this method instead of the method you used above.
 
+
+
 caffRegSDs <- apply(data.frame(caffReg$totCaffeine, caffReg$numQuitAttempts, caffReg$yearsCaffUse, caffReg$numCupsCoffee, caffReg$B1Total, caffReg$B2Total), 2, FUN = sd)
 
 caffRegSEs <- caffRegSDs/sqrt(nrow(caffReg))
@@ -21,15 +23,26 @@ caffRegSEs <- caffRegSDs/sqrt(nrow(caffReg))
 
 # number of each level of each factor. The apply function applies the 'count' function inside it to the columns specified in the first argument. We have restricted this to only the columns that are factors. In the first argument the sapply function is isolating only those columns of caffReg that are factors. If we just ran the count function called by 'apply' on caffReg it would give us counts for numeric vectors, dates etc. We want only the factors. The '2' specifies that we are conducting this operation on columns (1 would be rows). 
 
+# you may have to detach dplyr to run the following, as it, along with plyr, also has a count function
+detach("package:dplyr", unload = T)
+
 apply(caffReg[, sapply(caffReg, is.factor)], 2, count)
 
 
-# # could do it another way if you had a list of column names that were factors
 
-caffFactNames <- colnames(caffReg[, sapply(caffReg, is.factor)])
+# # could do the above another way if you had a list of column names that were factors
 
-apply(caffReg[, caffFactNames], 2, count)
+# caffFactNames <- colnames(caffReg[, sapply(caffReg, is.factor)])
+# 
+# apply(caffReg[, caffFactNames], 2, count)
 
+
+# group means 
+
+gMeansCaffReg <- with(caffReg, tapply(caffReg$B2Total, dSetID, mean))
+
+
+#aggregate(data.frame(caffReg[, sapply(caffReg, is.numeric)]) ~ dSetID, data = caffReg, mean)
 ########## Simple Regression #############################
 
 reg <- lm(B2Total ~ totCaffeine, data = caffReg)
@@ -79,7 +92,6 @@ require(lmSupport)
 
 lm.sumSquares(model5)
 
-
 # or we can also use the following function from the lmSupport package to give us change in r-squared and partial eta-squared
 
 lm.deltaR2(model4, model5) # note you can only compare two models at a time.
@@ -90,6 +102,7 @@ modelCompare(model4, model5)
 
 
 ### using stepwise regression via the rms package
+
 
 require(rms)
 
@@ -310,4 +323,5 @@ library(gvlma)
 gvModel5 <- gvlma(model5)
 
 summary(gvModel5)
+
 
